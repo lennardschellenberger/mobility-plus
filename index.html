@@ -138,6 +138,7 @@ button:hover { transform: scale(1.03); }
 
 <div class="card">
 
+    <!-- SETUP BEREICH -->
     <div id="setup">
         <h3>Namen der Teilnehmenden:</h3>
         <p style="font-size:16px; color:#666; margin:0;">(Mit Komma trennen, z. B.: Erna, Heinz, Gerda)</p>
@@ -154,6 +155,7 @@ button:hover { transform: scale(1.03); }
         <button class="start" onclick="startGame()">SPIEL STARTEN</button>
     </div>
 
+    <!-- SPIEL BEREICH -->
     <div id="game">
         <div id="player">---</div>
 
@@ -268,6 +270,11 @@ function setDiff(d, element) {
     document.getElementById("task").innerText = "Übung bereit - Bitte starten";
 }
 
+// Hilfsfunktion zur Ermittlung des korrekten Plurals
+function getWordForPoints(value) {
+    return value === 1 ? "Punkt" : "Punkte";
+}
+
 function updateBoard() {
     let html = "<b>Aktivitäts-Protokoll und Zeitkonten</b><br><table style='width:100%; margin-top:10px; border-spacing: 10px;'>";
     for(let i = 0; i < players.length; i++) {
@@ -276,7 +283,7 @@ function updateBoard() {
         
         html += `<tr style='${(i === current && timeLeft[i] > 0) ? "font-weight:bold; color:#005585;" : ""}'>
                     <td>${activeMarker}${players[i]}</td>
-                    <td>${scores[i]} Vital-Punkte</td>
+                    <td>${scores[i]} ${getWordForPoints(scores[i])}</td>
                     <td>${statusText}</td>
                  </tr>`;
     }
@@ -384,7 +391,7 @@ function endGame() {
     let maxPoints = -1;
 
     for (let i = 0; i < players.length; i++) {
-        msg += players[i] + ": " + scores[i] + " Vital-Punkte\n";
+        msg += `${players[i]}: ${scores[i]} ${getWordForPoints(scores[i])}\n`;
         if (scores[i] > maxPoints) {
             maxPoints = scores[i];
             winner = players[i];
