@@ -1,10 +1,154 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Senioren Aktiv-Challenge</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f4f7f6;
+    color: #1a1a1a;
+    text-align: center;
+    padding: 20px;
+    font-size: 20px;
+}
+
+h1 {
+    color: #005585;
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: #ffffff;
+    max-width: 650px;
+    margin: auto;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+input {
+    font-size: 22px;
+    padding: 12px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    margin: 10px 0;
+    width: 90%;
+    text-align: center;
+}
+
+button {
+    font-size: 22px;
+    font-weight: bold;
+    padding: 18px 28px;
+    margin: 10px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover { transform: scale(1.03); }
+
+.start { background-color: #2e7d32; color: white; width: 80%; margin-top: 20px; }
+.action-btn { background-color: #0066cc; color: white; min-width: 150px; }
+.stop { background-color: #2e7d32; color: white; min-width: 150px; }
+
+.diff { background-color: #e0e0e0; color: #333; border: 2px solid #b0b0b0; }
+.active { outline: 5px solid #005585; background-color: #005585; color: white; }
+
+#game { display: none; }
+
+.taskCard {
+    margin: 30px auto;
+    background: linear-gradient(145deg, #ffffff, #e6f2ff);
+    border: 3px solid #0066cc;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 500px;
+    box-shadow: 0 4px 15px rgba(0,99,204,0.15);
+    animation: flip 0.4s ease;
+}
+
+@keyframes flip {
+    0% { transform: rotateX(70deg); opacity: 0; }
+    100% { transform: rotateX(0deg); opacity: 1; }
+}
+
+#task { font-size: 28px; font-weight: bold; margin: 20px 0; color: #222; }
+#player { font-size: 34px; color: #005585; font-weight: bold; }
+#timer { font-size: 60px; font-weight: bold; color: #c62828; margin: 10px; }
+
+#board {
+    margin-top: 25px;
+    text-align: left;
+    font-size: 18px;
+    background: #eef5f9;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 6px solid #005585;
+}
+</style>
+</head>
+
+<body>
+
+<h1>👵👴 Senioren Aktiv-Challenge</h1>
+<div class="subtitle">Digitaler Bewegungspaß für Kraft & Balance im Alltag</div>
+
+<div class="card">
+
+    <div id="setup">
+        <h3>👥 Namen der Teilnehmenden:</h3>
+        <p style="font-size:16px; color:#666; margin:0;">(Mit Komma trennen, z. B.: Erna, Heinz, Gerda)</p>
+        <input id="playersInput" placeholder="z. B. Erna, Heinz, Gerda" value="Erna, Heinz">
+
+        <h3>⏱️ Gesamt-Zeitkonto pro Person (Sekunden):</h3>
+        <input id="timeInput" type="number" value="120">
+
+        <button class="start" onclick="startGame()">▶ SPIEL STARTEN</button>
+    </div>
+
+    <div id="game">
+        <div id="player">---</div>
+
+        <div class="taskCard" id="card">
+            <div id="task">Bitte Übungsart wählen</div>
+            <div id="timer">0</div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <button class="diff" onclick="setDiff('easy', this)">🪑 Im Sitzen</button>
+            <button class="diff" onclick="setDiff('medium', this)">🚶 Stand (Leicht)</button>
+            <button class="diff" onclick="setDiff('hard', this)">💪 Stand (Aktiv)</button>
+        </div>
+
+        <div>
+            <button class="action-btn" onclick="startTurn()">▶ START (Uhr läuft)</button>
+            <button class="stop" onclick="stopTurn()">✔️ ÜBUNG ERLEDIGT</button>
+        </div>
+
+        <div id="board"></div>
+    </div>
+
+</div>
+
+<script>
 let players = [], scores = [], timeLeft = [];
 let current = 0;
 let timer = null;
 let running = false;
 let difficulty = null;
 
-/* ZIELGRUPPENGERECHTE AUFGABEN (Sturzprävention & Alltagsmotorik) */
 const tasks = {
    easy: [
       "Im Sitzen: Beide Arme weit nach oben strecken („Sterne greifen“).",
@@ -28,22 +172,24 @@ const tasks = {
 
 function playTone(freq, duration, delay = 0) {
     setTimeout(() => {
-        let ctx = new (window.AudioContext || window.webkitAudioContext)();
-        let o = ctx.createOscillator();
-        let g = ctx.createGain();
-        o.frequency.value = freq;
-        o.type = "sine";
-        g.gain.value = 0.1;
-        o.connect(g);
-        g.connect(ctx.destination);
-        o.start();
-        setTimeout(() => o.stop(), duration);
+        try {
+            let ctx = new (window.AudioContext || window.webkitAudioContext)();
+            let o = ctx.createOscillator();
+            let g = ctx.createGain();
+            o.frequency.value = freq;
+            o.type = "sine";
+            g.gain.value = 0.1;
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.start();
+            setTimeout(() => o.stop(), duration);
+        } catch(e) { console.log("Audio-Fehler abgefangen"); }
     }, delay);
 }
 
 function soundStart() {
-    playTone(523.25, 150, 0); // C5
-    playTone(659.25, 150, 150); // E5
+    playTone(523.25, 150, 0);
+    playTone(659.25, 150, 150);
 }
 
 function soundPoint() {
@@ -57,11 +203,11 @@ function soundGameOver() {
     playTone(200, 400, 500);
 }
 
-function setDiff(d) {
+function setDiff(d, element) {
     if(running) return;
     difficulty = d;
     document.querySelectorAll(".diff").forEach(b => b.classList.remove("active"));
-    event.target.classList.add("active");
+    element.classList.add("active");
     
     let list = tasks[difficulty];
     document.getElementById("task").innerText = list[Math.floor(Math.random() * list.length)];
@@ -71,7 +217,7 @@ function updateBoard() {
     let html = "<b>📊 Aktivitäts-Protokoll & Zeitkonten</b><br><table style='width:100%; margin-top:10px; border-spacing: 10px;'>";
     for(let i = 0; i < players.length; i++) {
         let activeMarker = (i === current && timeLeft[i] > 0) ? "👉 " : "";
-        let statusText = timeLeft[i] <= 0 ? "<span style='color:#c62828;'>⏱️ Leer (Ausgeschieden)</span>" : `⏱️ ${timeLeft[i]}s übrig`;
+        let statusText = timeLeft[i] <= 0 ? "<span style='color:#c62828; font-weight:bold;'>⏱️ Zeit leer</span>" : `⏱️ ${timeLeft[i]}s`;
         
         html += `<tr style='${(i === current && timeLeft[i] > 0) ? "font-weight:bold; color:#005585;" : ""}'>
                     <td>${activeMarker}${players[i]}</td>
@@ -93,7 +239,7 @@ function startGame() {
     }
 
     scores = Array(players.length).fill(0);
-    timeLeft = Array(players.length).fill(baseTime); // Jeder bekommt sein eigenes volles Zeitkonto
+    timeLeft = Array(players.length).fill(baseTime);
 
     document.getElementById("setup").style.display = "none";
     document.getElementById("game").style.display = "block";
@@ -103,21 +249,22 @@ function startGame() {
 }
 
 function loadPlayer() {
-    // Prüfen, ob ALLE Spieler bei 0 Sekunden sind
     if (timeLeft.every(t => t <= 0)) {
         endGame();
         return;
     }
 
-    // Falls der aktuelle Spieler keine Zeit mehr hat, rücke zum nächsten vor, der noch Zeit hat
-    let attempts = 0;
-    while (timeLeft[current] <= 0 && attempts < players.length) {
+    let initialCurrent = current;
+    while (timeLeft[current] <= 0) {
         current = (current + 1) % players.length;
-        attempts++;
+        if (current === initialCurrent) {
+            endGame();
+            return;
+        }
     }
 
     document.getElementById("player").innerText = "An der Reihe: " + players[current];
-    document.getElementById("task").innerText = "Wähle eine Übungsart aus";
+    document.getElementById("task").innerText = "Wähle eine Übungsart aus (Buttons unten)";
     document.getElementById("timer").innerText = timeLeft[current];
     running = false;
     clearInterval(timer);
@@ -140,14 +287,13 @@ function startTurn() {
             document.getElementById("timer").innerText = timeLeft[current];
         }
 
-        // Wenn die Zeit des Spielers WÄHREND der Übung auf 0 springt
         if (timeLeft[current] <= 0) {
             clearInterval(timer);
             running = false;
-            alert(`${players[current]}s Zeitkonto ist abgelaufen! Atmen Sie tief durch.`);
+            updateBoard();
+            alert(`${players[current]}s Zeitkonto ist abgelaufen!`);
             nextPlayer();
         }
-
         updateBoard();
     }, 1000);
 }
@@ -158,7 +304,6 @@ function stopTurn() {
     clearInterval(timer);
     running = false;
 
-    // Punkte vergeben basierend auf der Schwierigkeit
     let points = difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3;
     scores[current] += points;
 
@@ -169,8 +314,6 @@ function stopTurn() {
 function nextPlayer() {
     document.querySelectorAll(".diff").forEach(b => b.classList.remove("active"));
     difficulty = null;
-    
-    // Zum nächsten Spieler wechseln
     current = (current + 1) % players.length;
     loadPlayer();
 }
@@ -193,5 +336,9 @@ function endGame() {
 
     msg += `\n🎉 Sieger der Aktiv-Challenge ist: ${winner}!`;
     alert(msg);
-    location.reload(); // Setzt die Seite für eine neue Runde zurück
+    location.reload();
 }
+</script>
+
+</body>
+</html>
