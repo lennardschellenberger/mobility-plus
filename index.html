@@ -18,7 +18,7 @@ body {
 h1 {
     color: #005585;
     font-size: 36px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .subtitle {
@@ -36,7 +36,7 @@ h1 {
     box-shadow: 0 8px 24px rgba(0,0,0,0.1);
 }
 
-input, select {
+input {
     font-size: 22px;
     padding: 12px;
     border: 2px solid #ccc;
@@ -44,7 +44,37 @@ input, select {
     margin: 10px 0;
     width: 90%;
     text-align: center;
-    background-color: white;
+}
+
+.time-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 15px 0 25px 0;
+}
+
+.time-box {
+    flex: 1;
+    padding: 15px;
+    background: #eef5f9;
+    border: 2px solid #b0b0b0;
+    border-radius: 12px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.time-box:hover {
+    background: #dbede5;
+    transform: translateY(-2px);
+}
+
+.time-box.selected {
+    background: #005585;
+    color: white;
+    border-color: #005585;
 }
 
 button {
@@ -60,7 +90,7 @@ button {
 
 button:hover { transform: scale(1.03); }
 
-.start { background-color: #2e7d32; color: white; width: 80%; margin-top: 20px; }
+.start { background-color: #2e7d32; color: white; width: 80%; margin-top: 10px; }
 .action-btn { background-color: #0066cc; color: white; min-width: 150px; }
 .stop { background-color: #2e7d32; color: white; min-width: 150px; }
 
@@ -104,7 +134,7 @@ button:hover { transform: scale(1.03); }
 <body>
 
 <h1>Mobility-Plus</h1>
-<div class="subtitle">Digitaler Bewegungspaß für Kraft und Balance im Alltag</div>
+<div class="subtitle">Interaktive Bewegungsförderung im Alltag</div>
 
 <div class="card">
 
@@ -113,13 +143,13 @@ button:hover { transform: scale(1.03); }
         <p style="font-size:16px; color:#666; margin:0;">(Mit Komma trennen, z. B.: Erna, Heinz, Gerda)</p>
         <input id="playersInput" placeholder="Namen hier eingeben" value="">
 
-        <h3>Gesamt-Zeitkonto pro Person:</h3>
-        <select id="timeSelect">
-            <option value="60">60 Sekunden (Kurze Runde)</option>
-            <option value="120" selected>120 Sekunden (Standard)</option>
-            <option value="180">180 Sekunden (Intensiv)</option>
-            <option value="240">240 Sekunden (Ausdauer)</option>
-        </select>
+        <h3>Gesamt-Zeitkonto pro Person (Sekunden):</h3>
+        <div class="time-container">
+            <div class="time-box" onclick="selectTime(60, this)">60s</div>
+            <div class="time-box selected" onclick="selectTime(120, this)">120s</div>
+            <div class="time-box" onclick="selectTime(180, this)">180s</div>
+            <div class="time-box" onclick="selectTime(240, this)">240s</div>
+        </div>
 
         <button class="start" onclick="startGame()">SPIEL STARTEN</button>
     </div>
@@ -139,8 +169,8 @@ button:hover { transform: scale(1.03); }
         </div>
 
         <div>
-            <button class="action-btn" onclick="startTurn()">START (Uhr läuft)</button>
-            <button class="stop" onclick="stopTurn()">ÜBUNG ERLEDIGT</button>
+            <button class="action-btn" onclick="startTurn()">Start</button>
+            <button class="stop" onclick="stopTurn()">Erledigt</button>
         </div>
 
         <div id="board"></div>
@@ -154,27 +184,44 @@ let current = 0;
 let timer = null;
 let running = false;
 let difficulty = null;
+let baseTimeSelected = 120;
+let nextTaskText = "";
 
 const tasks = {
    easy: [
       "Im Sitzen: Beide Arme weit nach oben strecken (Sterne greifen).",
       "Im Sitzen: Die Fußspitzen abwechselnd anheben und senken.",
       "Im Sitzen: Die Schultern langsam kreisen lassen.",
-      "Im Sitzen: Den Kopf sanft von der linken zur rechten Seite drehen."
+      "Im Sitzen: Den Kopf sanft von der linken zur rechten Seite drehen.",
+      "Im Sitzen: Die Hände auf den Knien ablegen und den Oberkörper kreisen lassen.",
+      "Im Sitzen: Ein Bein nach vorne ausstrecken, kurz halten und wieder absenken.",
+      "Im Sitzen: Die Hände zur Faust ballen und die Finger wieder weit spreizen."
    ],
    medium: [
       "Im sicheren Stand: Einmal aufstehen vom Stuhl ohne die Hände zu nutzen.",
       "Am Stuhl festhalten: Abwechselnd auf die Zehenspitzen stellen.",
       "Im Stand: Auf der Stelle langsam marschieren.",
-      "Am Stuhl festhalten: Ein Bein leicht nach hinten abspreizen."
+      "Am Stuhl festhalten: Ein Bein leicht nach hinten abspreizen.",
+      "Im sicheren Stand: Die Arme auf Brusthöhe nach vorne ausstrecken und halten.",
+      "Am Stuhl festhalten: Das rechte Knie leicht anheben, dann das linke Knie.",
+      "Im Stand: Die Hüfte langsam kreisen lassen (Hände an den Hüften)."
    ],
    hard: [
       "Freier Stand: 5 langsame, sichere Kniebeugen machen.",
       "Balance: Versuchen, für 10 Sekunden sicher auf einem Bein zu stehen.",
       "Koordinativ: Mit der rechten Hand das linke Knie berühren und umgekehrt.",
-      "Im Stand: Die Arme seitlich ausstrecken und kleine Kreise in die Luft malen."
+      "Im Stand: Die Arme seitlich ausstrecken und kleine Kreise in die Luft malen.",
+      "Im Stand: Einen großen Schritt nach vorne machen und stabil stehen bleiben.",
+      "Im Stand: Gewichtsverlagerung von der linken auf die rechte Seite und zurück.",
+      "Freier Stand: Beide Arme zeitgleich vor dem Körper auf und ab bewegen."
    ]
 };
+
+function selectTime(seconds, element) {
+    baseTimeSelected = seconds;
+    document.querySelectorAll(".time-box").forEach(box => box.classList.remove("selected"));
+    element.classList.add("selected");
+}
 
 function playTone(freq, duration, delay = 0) {
     setTimeout(() => {
@@ -216,7 +263,9 @@ function setDiff(d, element) {
     element.classList.add("active");
     
     let list = tasks[difficulty];
-    document.getElementById("task").innerText = list[Math.floor(Math.random() * list.length)];
+    nextTaskText = list[Math.floor(Math.random() * list.length)];
+    
+    document.getElementById("task").innerText = "Übung bereit - Bitte starten";
 }
 
 function updateBoard() {
@@ -237,7 +286,6 @@ function updateBoard() {
 
 function startGame() {
     players = document.getElementById("playersInput").value.split(",").map(x => x.trim());
-    let baseTime = parseInt(document.getElementById("timeSelect").value);
 
     if(players.length < 1 || players[0] === "") {
         alert("Bitte mindestens einen Namen eingeben.");
@@ -245,7 +293,7 @@ function startGame() {
     }
 
     scores = Array(players.length).fill(0);
-    timeLeft = Array(players.length).fill(baseTime);
+    timeLeft = Array(players.length).fill(baseTimeSelected);
 
     document.getElementById("setup").style.display = "none";
     document.getElementById("game").style.display = "block";
@@ -284,6 +332,8 @@ function startTurn() {
     }
     if (running) return;
 
+    document.getElementById("task").innerText = nextTaskText;
+
     soundStart();
     running = true;
 
@@ -320,6 +370,7 @@ function stopTurn() {
 function nextPlayer() {
     document.querySelectorAll(".diff").forEach(b => b.classList.remove("active"));
     difficulty = null;
+    nextTaskText = "";
     current = (current + 1) % players.length;
     loadPlayer();
 }
