@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Senioren Aktiv-Challenge</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f4f7f6; /* Heller, freundlicher Kontrast für bessere Lesbarkeit */
+    color: #1a1a1a;
+    text-align: center;
+    padding: 20px;
+    font-size: 20px; /* Erhöhte Basisschriftgröße */
+}
+
+h1 {
+    color: #005585;
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: #ffffff;
+    max-width: 650px; /* Etwas breiter für größere Elemente */
+    margin: auto;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1); /* Bessere räumliche Trennung */
+}
+
+input {
+    font-size: 22px;
+    padding: 12px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    margin: 10px 0;
+    width: 90%;
+    text-align: center;
+}
+
+button {
+    font-size: 22px; /* Große Schrift auf Knöpfen */
+    font-weight: bold;
+    padding: 18px 28px; /* Übergroße Klickflächen für eingeschränkte Feinmotorik */
+    margin: 10px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover { transform: scale(1.03); }
+
+/* Farbcodierung nach Barrierefreiheits-Standards */
+.start { background-color: #2e7d32; color: white; width: 80%; margin-top: 20px; }
+.action-btn { background-color: #0066cc; color: white; min-width: 150px; }
+.stop { background-color: #c62828; color: white; min-width: 150px; }
+
+.diff { background-color: #e0e0e0; color: #333; border: 2px solid #b0b0b0; }
+.active { outline: 5px solid #005585; background-color: #005585; color: white; }
+
+#game { display: none; }
+
+/* ANIMIERTE AUFGABEN-KARTE */
+.taskCard {
+    margin: 30px auto;
+    background: linear-gradient(145deg, #ffffff, #e6f2ff);
+    border: 3px solid #0066cc;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 500px;
+    box-shadow: 0 4px 15px rgba(0,99,204,0.15);
+    animation: flip 0.4s ease;
+}
+
+@keyframes flip {
+    0% { transform: rotateX(70deg); opacity: 0; }
+    100% { transform: rotateX(0deg); opacity: 1; }
+}
+
+#task { font-size: 28px; font-weight: bold; margin: 20px 0; color: #222; }
+#player { font-size: 34px; color: #005585; font-weight: bold; }
+#timer { font-size: 60px; font-weight: bold; color: #c62828; margin: 10px; }
+
+/* SCOREBOARD */
+#board {
+    margin-top: 25px;
+    text-align: left;
+    font-size: 18px;
+    background: #eef5f9;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 6px solid #005585;
+}
+</style>
+</head>
+
+<body>
+
+<h1>👵👴 Senioren Aktiv-Challenge</h1>
+<div class="subtitle">Digitaler Bewegungspaß für Kraft & Balance im Alltag</div>
+
+<div class="card">
+
+    <!-- SETUP BEREICH -->
+    <div id="setup">
+        <h3>👥 Namen der Teilnehmenden:</h3>
+        <p style="font-size:16px; color:#666; margin:0;">(Mit Komma trennen, z. B.: Erna, Heinz, Gerda)</p>
+        <input id="playersInput" placeholder="z. B. Erna, Heinz, Gerda">
+
+        <h3>⏱️ Zeit pro Übung (Sekunden):</h3>
+        <input id="timeInput" type="number" value="30">
+
+        <button class="start" onclick="startGame()">▶ SPIEL STARTEN</button>
+    </div>
+
+    <!-- SPIEL BEREICH -->
+    <div id="game">
+        <div id="player">---</div>
+
+        <div class="taskCard" id="card">
+            <div id="task">Bitte Schwierigkeit wählen</div>
+            <div id="timer">0</div>
+        </div>
+
+        <!-- LEICHTE BEDIENBARKEIT: KLASSIFIZIERUNG DER ÜBUNGEN -->
+        <div style="margin-bottom: 20px;">
+            <button class="diff" onclick="setDiff('easy')">🪑 Im Sitzen</button>
+            <button class="diff" onclick="setDiff('medium')">🚶 Stand (Leicht)</button>
+            <button class="diff" onclick="setDiff('hard')">💪 Stand (Aktiv)</button>
+        </div>
+
+        <div>
+            <button class="action-btn" onclick="startTurn()">▶ ÜBUNG STARTEN</button>
+            <button class="stop" onclick="stopTurn()">✔️ GORREKT ERLEDIGT</button>
+        </div>
+
+        <div id="board"></div>
+    </div>
+
+</div>
+
+<script>
+let players = [], scores = [];
+let current = 0;
+let timer = null;
+let running = false;
+let difficulty = null;
+let durationBase = 30;
+let currentCountdown = 0;
+
+/* ZIELGRUPPENGERECHTE AUFGABEN (Sturzprävention & Alltagsmotorik) */
+const tasks = {
+   easy: [
+      "Im Sitzen: Beide Arme weit nach oben strecken („Sterne greifen“).",
+      "Im Sitzen: Die Fußspitzen abwechselnd anheben und senken.",
+      "Im Sitzen: Die Schultern langsam kreisen lassen.",
+      "Im Sitzen: Den Kopf sanft von der linken zur rechten Seite drehen."
+   ],
+   medium: [
+      "Im sicheren Stand: Einmal aufstehen vom Stuhl ohne die Hände zu nutzen.",
+      "Am Stuhl festhalten: Abwechselnd auf die Zehenspitzen stellen.",
+      "Im Stand: Auf der Stelle langsam marschieren.",
+      "Am Stuhl festhalten: Ein Bein leicht nach hinten abspreizen."
+   ],
+   hard: [
+      "Freier Stand: 5 langsame, sichere Kniebeugen machen.",
+      "Balance: Versuchen, für 10 Sekunden sicher auf einem Bein zu stehen.",
+      "Koordinativ: Mit der rechten Hand das linke Knie berühren und umgekehrt.",
+      "Im Stand: Die Arme seitlich ausstrecken und kleine Kreise in die Luft malen."
+   ]
+};
+
+function playTone(freq, duration, delay = 0) {
+    setTimeout(() => {
+        let ctx = new (window.AudioContext || window.webkitAudioContext)();
+        let o = ctx.createOscillator();
+        let g = ctx.createGain();
+        o.frequency.value = freq;
+        o.type = "sine";
+        g.gain.value = 0.1;
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.start();
+        setTimeout(() => o.stop(), duration);
+    }, delay);
+}
+
+function soundStart() {
+    playTone(523.25, 150, 0); // C5 Melodischer Startton
+    playTone(659.25, 150, 150); // E5
+}
+
+function soundPoint() {
+    playTone(523.25, 100, 0);
+    playTone(783.99, 150, 100); // Erfolgs-Intervall
+}
+
+function soundTimeUp() {
+    playTone(392.00, 200, 0); // Tieferer Ton bei Ablauf der Zeit
+    playTone(349.23, 300, 200);
+}
+
+function setDiff(d) {
+    if(running) return;
+    difficulty = d;
+    document.querySelectorAll(".diff").forEach(b => b.classList.remove("active"));
+    event.target.classList.add("active");
+    
+    // Direkt Vorschau der Aufgabe anzeigen
+    let list = tasks[difficulty];
+    document.getElementById("task").innerText = list[Math.floor(Math.random() * list.length)];
+    document.getElementById("timer").innerText = durationBase;
+}
+
+function updateBoard() {
+    let html = "<b>📊 Aktivitäts-Protokoll</b><br><table style='width:100%; margin-top:10px; border-spacing: 10px;'>";
+    for(let i = 0; i < players.length; i++) {
+        let activeMarker = (i === current) ? "👉 " : "";
+        html += `<tr style='${i === current ? "font-weight:bold; color:#005585;" : ""}'>
+                    <td>${activeMarker}${players[i]}</td>
+                    <td>${scores[i]} Vital-Punkte</td>
+                 </tr>`;
+    }
+    html += "</table>";
+    document.getElementById("board").innerHTML = html;
+}
+
+function startGame() {
+    players = document.getElementById("playersInput").value.split(",").map(x => x.trim());
+    durationBase = parseInt(document.getElementById("timeInput").value);
+
+    if(players.length < 1 || players[0] === "") {
+        alert("Bitte mindestens einen Namen eingeben.");
+        return;
+    }
+
+    scores = Array(players.length).fill(0);
+    document.getElementById("setup").style.display = "none";
+    document.getElementById("game").style.display = "block";
+
+    current = 0;
+    loadPlayer();
+}
+
+function loadPlayer() {
+    document.getElementById("player").innerText = "An der Reihe: " + players[current];
+    document.getElementById("task").innerText = "Wähle eine Übungsart aus";
+    document.getElementById("timer").innerText = durationBase;
+    running = false;
+    clearInterval(timer);
+    updateBoard();
+}
+
+function startTurn() {
+    if (!difficulty) {
+        alert("Bitte wählen Sie zuerst eine Übungsart aus (z. B. Im Sitzen)!");
+        return;
+    }
+    if (running) return;
+
+    soundStart();
+    running = true;
+    currentCountdown = durationBase;
+
+    timer = setInterval(() => {
+        currentCountdown--;
+        document.getElementById("timer").innerText = currentCountdown;
+
+        if (currentCountdown <= 0) {
+            clearInterval(timer);
+            running = false;
+            soundTimeUp();
+            alert("Zeit abgelaufen! Atmen Sie tief durch.");
+            nextPlayer();
+        }
+    }, 1000);
+}
+
+function stopTurn() {
+    if (!running) return;
+
+    clearInterval(timer);
+    running = false;
+
+    let points = difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3;
+    scores[current] += points;
+
+    soundPoint();
+    nextPlayer();
+}
+
+function nextPlayer() {
+    // Buttons zurücksetzen
+    document.querySelectorAll(".diff").forEach(b => b.classList.remove("active"));
+    difficulty = null;
+    
+    // Nächster Spieler
+    current = (current + 1) % players.length;
+    loadPlayer();
+}
+</script>
+
+</body>
+</html>
