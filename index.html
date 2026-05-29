@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Senioren Aktiv-Challenge</title>
+<title>Mobility-Plus</title>
 
 <style>
 body {
@@ -36,7 +36,7 @@ h1 {
     box-shadow: 0 8px 24px rgba(0,0,0,0.1);
 }
 
-input {
+input, select {
     font-size: 22px;
     padding: 12px;
     border: 2px solid #ccc;
@@ -44,6 +44,7 @@ input {
     margin: 10px 0;
     width: 90%;
     text-align: center;
+    background-color: white;
 }
 
 button {
@@ -102,20 +103,25 @@ button:hover { transform: scale(1.03); }
 
 <body>
 
-<h1>👵👴 Senioren Aktiv-Challenge</h1>
-<div class="subtitle">Digitaler Bewegungspaß für Kraft & Balance im Alltag</div>
+<h1>Mobility-Plus</h1>
+<div class="subtitle">Digitaler Bewegungspaß für Kraft und Balance im Alltag</div>
 
 <div class="card">
 
     <div id="setup">
-        <h3>👥 Namen der Teilnehmenden:</h3>
+        <h3>Namen der Teilnehmenden:</h3>
         <p style="font-size:16px; color:#666; margin:0;">(Mit Komma trennen, z. B.: Erna, Heinz, Gerda)</p>
-        <input id="playersInput" placeholder="z. B. Erna, Heinz, Gerda" value="Erna, Heinz">
+        <input id="playersInput" placeholder="Namen hier eingeben" value="">
 
-        <h3>⏱️ Gesamt-Zeitkonto pro Person (Sekunden):</h3>
-        <input id="timeInput" type="number" value="120">
+        <h3>Gesamt-Zeitkonto pro Person:</h3>
+        <select id="timeSelect">
+            <option value="60">60 Sekunden (Kurze Runde)</option>
+            <option value="120" selected>120 Sekunden (Standard)</option>
+            <option value="180">180 Sekunden (Intensiv)</option>
+            <option value="240">240 Sekunden (Ausdauer)</option>
+        </select>
 
-        <button class="start" onclick="startGame()">▶ SPIEL STARTEN</button>
+        <button class="start" onclick="startGame()">SPIEL STARTEN</button>
     </div>
 
     <div id="game">
@@ -127,14 +133,14 @@ button:hover { transform: scale(1.03); }
         </div>
 
         <div style="margin-bottom: 20px;">
-            <button class="diff" onclick="setDiff('easy', this)">🪑 Im Sitzen</button>
-            <button class="diff" onclick="setDiff('medium', this)">🚶 Stand (Leicht)</button>
-            <button class="diff" onclick="setDiff('hard', this)">💪 Stand (Aktiv)</button>
+            <button class="diff" onclick="setDiff('easy', this)">Im Sitzen (1 Punkt)</button>
+            <button class="diff" onclick="setDiff('medium', this)">Stand Leicht (2 Punkte)</button>
+            <button class="diff" onclick="setDiff('hard', this)">Stand Aktiv (3 Punkte)</button>
         </div>
 
         <div>
-            <button class="action-btn" onclick="startTurn()">▶ START (Uhr läuft)</button>
-            <button class="stop" onclick="stopTurn()">✔️ ÜBUNG ERLEDIGT</button>
+            <button class="action-btn" onclick="startTurn()">START (Uhr läuft)</button>
+            <button class="stop" onclick="stopTurn()">ÜBUNG ERLEDIGT</button>
         </div>
 
         <div id="board"></div>
@@ -151,7 +157,7 @@ let difficulty = null;
 
 const tasks = {
    easy: [
-      "Im Sitzen: Beide Arme weit nach oben strecken („Sterne greifen“).",
+      "Im Sitzen: Beide Arme weit nach oben strecken (Sterne greifen).",
       "Im Sitzen: Die Fußspitzen abwechselnd anheben und senken.",
       "Im Sitzen: Die Schultern langsam kreisen lassen.",
       "Im Sitzen: Den Kopf sanft von der linken zur rechten Seite drehen."
@@ -214,10 +220,10 @@ function setDiff(d, element) {
 }
 
 function updateBoard() {
-    let html = "<b>📊 Aktivitäts-Protokoll & Zeitkonten</b><br><table style='width:100%; margin-top:10px; border-spacing: 10px;'>";
+    let html = "<b>Aktivitäts-Protokoll und Zeitkonten</b><br><table style='width:100%; margin-top:10px; border-spacing: 10px;'>";
     for(let i = 0; i < players.length; i++) {
-        let activeMarker = (i === current && timeLeft[i] > 0) ? "👉 " : "";
-        let statusText = timeLeft[i] <= 0 ? "<span style='color:#c62828; font-weight:bold;'>⏱️ Zeit leer</span>" : `⏱️ ${timeLeft[i]}s`;
+        let activeMarker = (i === current && timeLeft[i] > 0) ? "-> " : "";
+        let statusText = timeLeft[i] <= 0 ? "<span style='color:#c62828; font-weight:bold;'>Zeit leer</span>" : `${timeLeft[i]}s`;
         
         html += `<tr style='${(i === current && timeLeft[i] > 0) ? "font-weight:bold; color:#005585;" : ""}'>
                     <td>${activeMarker}${players[i]}</td>
@@ -231,7 +237,7 @@ function updateBoard() {
 
 function startGame() {
     players = document.getElementById("playersInput").value.split(",").map(x => x.trim());
-    let baseTime = parseInt(document.getElementById("timeInput").value);
+    let baseTime = parseInt(document.getElementById("timeSelect").value);
 
     if(players.length < 1 || players[0] === "") {
         alert("Bitte mindestens einen Namen eingeben.");
@@ -291,7 +297,7 @@ function startTurn() {
             clearInterval(timer);
             running = false;
             updateBoard();
-            alert(`${players[current]}s Zeitkonto ist abgelaufen!`);
+            alert(players[current] + "s Zeitkonto ist abgelaufen!");
             nextPlayer();
         }
         updateBoard();
@@ -322,19 +328,19 @@ function endGame() {
     clearInterval(timer);
     soundGameOver();
 
-    let msg = "🏆 ALLE ZEITKONTEN LEER - AUSWERTUNG 🏆\n\nErgebnisübersicht:\n";
+    let msg = "ALLE ZEITKONTEN LEER - AUSWERTUNG\n\nErgebnisübersicht:\n";
     let winner = "";
     let maxPoints = -1;
 
     for (let i = 0; i < players.length; i++) {
-        msg += `${players[i]}: ${scores[i]} Vital-Punkte\n`;
+        msg += players[i] + ": " + scores[i] + " Vital-Punkte\n";
         if (scores[i] > maxPoints) {
             maxPoints = scores[i];
             winner = players[i];
         }
     }
 
-    msg += `\n🎉 Sieger der Aktiv-Challenge ist: ${winner}!`;
+    msg += "\nSieger der Aktiv-Challenge ist: " + winner + "!";
     alert(msg);
     location.reload();
 }
