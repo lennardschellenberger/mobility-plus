@@ -41,9 +41,15 @@ input {
     padding: 12px;
     border: 2px solid #ccc;
     border-radius: 10px;
-    margin: 10px 0;
+    margin: 8px 0;
     width: 90%;
     text-align: center;
+    transition: 0.2s;
+}
+
+input:focus {
+    border-color: #005585;
+    outline: none;
 }
 
 .time-container {
@@ -128,6 +134,13 @@ button:hover { transform: scale(1.03); }
     border-radius: 12px;
     border-left: 6px solid #005585;
 }
+
+#dynamicInputs {
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 5px;
+    margin-bottom: 15px;
+}
 </style>
 </head>
 
@@ -138,11 +151,12 @@ button:hover { transform: scale(1.03); }
 
 <div class="card">
 
-    <!-- SETUP BEREICH -->
     <div id="setup">
         <h3>Namen der Teilnehmenden:</h3>
-        <p style="font-size:16px; color:#666; margin:0;">(Mit Komma trennen, z. B.: Erna, Heinz, Gerda)</p>
-        <input id="playersInput" placeholder="Namen hier eingeben" value="">
+        
+        <div id="dynamicInputs">
+            <input type="text" class="player-input" placeholder="Name Person 1" oninput="handleInput(this)">
+        </div>
 
         <h3>Gesamt-Zeitkonto pro Person (Sekunden):</h3>
         <div class="time-container">
@@ -155,7 +169,6 @@ button:hover { transform: scale(1.03); }
         <button class="start" onclick="startGame()">SPIEL STARTEN</button>
     </div>
 
-    <!-- SPIEL BEREICH -->
     <div id="game">
         <div id="player">---</div>
 
@@ -219,6 +232,26 @@ const tasks = {
    ]
 };
 
+// Verwaltet das automatische Hinzufügen von neuen Feldern
+function handleInput(currentInput) {
+    const container = document.getElementById("dynamicInputs");
+    const inputs = container.getElementsByClassName("player-input");
+    
+    // Prüfen, ob das aktuelle Feld das letzte in der Liste ist und Text enthält
+    if (currentInput === inputs[inputs.length - 1] && currentInput.value.trim() !== "") {
+        const nextIndex = inputs.length + 1;
+        const newInput = document.createElement("input");
+        newInput.type = "text";
+        newInput.className = "player-input";
+        newInput.placeholder = "Name Person " + nextIndex;
+        newInput.oninput = function() { handleInput(this); };
+        container.appendChild(newInput);
+        
+        // Automatisches Herunterscrollen, falls die Liste länger wird
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
 function selectTime(seconds, element) {
     baseTimeSelected = seconds;
     document.querySelectorAll(".time-box").forEach(box => box.classList.remove("selected"));
@@ -270,7 +303,6 @@ function setDiff(d, element) {
     document.getElementById("task").innerText = "Übung bereit - Bitte starten";
 }
 
-// Hilfsfunktion zur Ermittlung des korrekten Plurals
 function getWordForPoints(value) {
     return value === 1 ? "Punkt" : "Punkte";
 }
@@ -292,9 +324,13 @@ function updateBoard() {
 }
 
 function startGame() {
-    players = document.getElementById("playersInput").value.split(",").map(x => x.trim());
+    // Holt alle Input-Felder und filtert leere Einträge heraus
+    const inputElements = document.querySelectorAll(".player-input");
+    players = Array.from(inputElements)
+                   .map(el => el.value.trim())
+                   .filter(name => name !== "");
 
-    if(players.length < 1 || players[0] === "") {
+    if(players.length < 1) {
         alert("Bitte mindestens einen Namen eingeben.");
         return;
     }
