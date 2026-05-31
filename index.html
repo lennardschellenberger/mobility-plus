@@ -121,7 +121,7 @@ button:hover { transform: scale(1.03); }
     100% { transform: rotateX(0deg); opacity: 1; }
 }
 
-#task { font-size: 28px; font-weight: bold; margin: 20px 0; color: #222; }
+#task { font-size: 26px; font-weight: bold; margin: 20px 0; color: #222; line-height: 1.4; }
 #player { font-size: 34px; color: #005585; font-weight: bold; }
 #timer { font-size: 60px; font-weight: bold; color: #c62828; margin: 10px; }
 
@@ -202,42 +202,65 @@ let difficulty = null;
 let baseTimeSelected = 120;
 let nextTaskText = "";
 
+// Erweiterter & verbesserter Übungskatalog nach sportwissenschaftlichen Best-Practices
 const tasks = {
    easy: [
-      "Im Sitzen: Beide Arme weit nach oben strecken (Sterne greifen).",
-      "Im Sitzen: Die Fußspitzen abwechselnd anheben und senken.",
-      "Im Sitzen: Die Schultern langsam kreisen lassen.",
-      "Im Sitzen: Den Kopf sanft von der linken zur rechten Seite drehen.",
-      "Im Sitzen: Die Hände auf den Knien ablegen und den Oberkörper kreisen lassen.",
-      "Im Sitzen: Ein Bein nach vorne ausstrecken, kurz halten und wieder absenken.",
-      "Im Sitzen: Die Hände zur Faust ballen und die Finger wieder weit spreizen."
+      "Im Sitzen: Beide Arme weit nach oben strecken, als ob du reife Äpfel vom Baum pflückst.",
+      "Im Sitzen: Die Fußspitzen kraftvoll anheben, kurz halten und wieder absenken (aktiviert die Schienbeinmuskeln).",
+      "Im Sitzen: Große, langsame Kreise mit den Schultern nach hinten beschreiben, um den Nacken zu lockern.",
+      "Im Sitzen: Den Kopf ganz langsam erst zur linken Schulter drehen, kurz halten, dann zur rechten Schulter.",
+      "Im Sitzen: Die Hände auf die Knie legen und mit dem Oberkörper große, sanfte Kreise im Uhrzeigersinn machen.",
+      "Im Sitzen: Ein Bein komplett gerade nach vorne ausstrecken, Zehen heranziehen, 3 Sekunden halten, dann wechseln.",
+      "Im Sitzen: Die Hände fest zur Faust ballen, dann die Finger so weit wie möglich spreizen (Fördert die Durchblutung).",
+      "Im Sitzen: Die Hände hinter dem Kopf verschränken und die Ellbogen weit nach hinten drücken, um die Brust zu öffnen.",
+      "Im Sitzen: Abwechselnd die Knie so weit wie möglich Richtung Decke anheben (Marschieren im Sitzen).",
+      "Im Sitzen: Mit beiden Füßen gleichzeitig auf dem Boden 'tippeln', als ob es trommelt (Schnelligkeit & Koordination).",
+      "Im Sitzen: Den linken Arm diagonal nach rechts oben strecken, dann den rechten Arm nach links oben.",
+      "Im Sitzen: Die Fußgelenke in der Luft große Kreise drehen lassen – erst links, dann rechts.",
+      "Im Sitzen: Die Unterarme vor dem Gesicht zusammenführen (Ellbogen berühren sich) und weit nach hinten öffnen.",
+      "Im Sitzen: Den Oberkörper langsam nach vorne beugen, versuchen mit den Händen die Fußspitzen zu berühren.",
+      "Im Sitzen: 'Katzenbuckel und Kuh' – Den Rücken ganz rund machen, dann die Brust stolz nach vorne herausstrecken."
    ],
    medium: [
-      "Im sicheren Stand: Einmal aufstehen vom Stuhl ohne die Hände zu nutzen.",
-      "Am Stuhl festhalten: Abwechselnd auf die Zehenspitzen stellen.",
-      "Im Stand: Auf der Stelle langsam marschieren.",
-      "Am Stuhl festhalten: Ein Bein leicht nach hinten abspreizen.",
-      "Im sicheren Stand: Die Arme auf Brusthöhe nach vorne ausstrecken und halten.",
-      "Am Stuhl festhalten: Das rechte Knie leicht anheben, dann das linke Knie.",
-      "Im Stand: Die Hüfte langsam kreisen lassen (Hände an den Hüften)."
+      "Am Stuhl festhalten: Kontrolliert auf die Zehenspitzen stellen, kurz halten und langsam wieder absenken.",
+      "Mit Stuhl-Unterstützung: Abwechselnd ein Bein gestreckt zur Seite abspreizen (kräftigt die Hüftstabilität).",
+      "Sicherer Stand: Auf der Stelle langsam und rhythmisch marschieren, die Arme locker mitschwingen lassen.",
+      "Am Stuhl festhalten: Ein Bein nach hinten strecken, ohne den Oberkörper zu weit nach vorne zu beugen.",
+      "Sicherer Stand: Die Hände an die Hüften legen und das Becken ganz langsam in großen Kreisen bewegen.",
+      "Mit Stuhl-Unterstützung: Das rechte Knie Hüfthoch anheben, kurz halten, absetzen, dann das linke Knie.",
+      "Sicherer Stand: Die Arme auf Schulterhöhe nach vorne ausstrecken und für die Dauer der Übung stabil halten.",
+      "Am Stuhl festhalten: Die Füße hintereinanderstellen (Tandem-Stand) und versuchen, das Gleichgewicht zu halten.",
+      "Sicherer Stand: Die Arme hängen lassen und den Oberkörper abwechselnd nach links und rechts unten neigen.",
+      "Am Stuhl festhalten: Ein Bein leicht anheben und mit dem Fuß eine '8' in die Luft schreiben.",
+      "Am Stuhl festhalten: Leicht in die Knie gehen (Minikniebeuge) und den Po nach hinten schieben, als ob ein Stuhl da wäre.",
+      "Sicherer Stand: Die Hände auf den Schultern ablegen und mit den Ellbogen große Kreise in die Luft malen.",
+      "Am Stuhl festhalten: Das Gewicht komplett auf den linken Fuß verlagern, den rechten Fuß leicht anheben. Dann wechseln.",
+      "Sicherer Stand: Die Schulterblätter hinten fest zusammenziehen, 5 Sekunden halten, wieder locker lassen.",
+      "Mit Stuhl-Unterstützung: Den linken Arm nach vorne strecken und zeitgleich das rechte Bein nach hinten ausstrecken."
    ],
    hard: [
-      "Freier Stand: 5 langsame, sichere Kniebeugen machen.",
-      "Balance: Versuchen, für 10 Sekunden sicher auf einem Bein zu stehen.",
-      "Koordinativ: Mit der rechten Hand das linke Knie berühren und umgekehrt.",
-      "Im Stand: Die Arme seitlich ausstrecken und kleine Kreise in die Luft malen.",
-      "Im Stand: Einen großen Schritt nach vorne machen und stabil stehen bleiben.",
-      "Im Stand: Gewichtsverlagerung von der linken auf die rechte Seite und zurück.",
-      "Freier Stand: Beide Arme zeitgleich vor dem Körper auf und ab bewegen."
+      "Freier Stand: Einmal vollkommen ohne Hilfe der Hände vom Stuhl aufstehen und kontrolliert wieder hinsetzen.",
+      "Freier Stand: 5 langsame und saubere Kniebeugen machen (Po schiebt weit nach hinten, Rücken bleibt gerade).",
+      "Balance-Test: Versuchen, für volle 10 Sekunden absolut sicher auf dem linken Bein zu stehen (Stuhl in Reichweite!).",
+      "Koordination: Mit der rechten Hand das angehobene linke Knie berühren, dann mit der linken Hand das rechte Knie.",
+      "Freier Stand: Die Arme seitlich ausstrecken und kleine, schnelle Kreise vorwärts und rückwärts in die Luft malen.",
+      "Ausfallschritt: Einen großen Schritt nach vorne machen, stabil ausbalancieren, zurücksteigen und das Bein wechseln.",
+      "Freier Stand: Gewichtsverlagerung von links nach rechts – dabei das freie Bein jeweils kurz in der Luft halten.",
+      "Freier Stand: Beide Arme zeitgleich wie Windmühlenflügel versetzt vor und zurück kreisen lassen.",
+      "Seiltänzer: 3 Schritte direkt voreinander (Ferse an Fußspitze) nach vorne gehen, dann 3 Schritte rückwärts.",
+      "Freier Stand: Den Oberkörper sanft nach links und rechts rotieren lassen, die Arme schwingen dabei locker mit.",
+      "Koordinativ: Rechte Hand berührt die linke Ferse hinter dem Körper, linke Hand berührt die rechte Ferse.",
+      "Freier Stand: Auf den Zehenspitzen stehen und versuchen, die Arme abwechselnd nach oben zu strecken.",
+      "Freier Stand: Die Knie beim Marschieren auf der Stelle extra hoch ziehen (Richtung Brust) und oben kurz halten.",
+      "Boxer-Lauf: Auf der Stelle locker gehen und gleichzeitig schnelle, leichte Boxschläge in die Luft abgeben.",
+      "Freier Stand: Versuchen, mit geschlossenen Augen für 10 Sekunden völlig stabil und aufrecht stehen zu bleiben."
    ]
 };
 
-// Verwaltet das automatische Hinzufügen von neuen Feldern
 function handleInput(currentInput) {
     const container = document.getElementById("dynamicInputs");
     const inputs = container.getElementsByClassName("player-input");
     
-    // Prüfen, ob das aktuelle Feld das letzte in der Liste ist und Text enthält
     if (currentInput === inputs[inputs.length - 1] && currentInput.value.trim() !== "") {
         const nextIndex = inputs.length + 1;
         const newInput = document.createElement("input");
@@ -247,7 +270,6 @@ function handleInput(currentInput) {
         newInput.oninput = function() { handleInput(this); };
         container.appendChild(newInput);
         
-        // Automatisches Herunterscrollen, falls die Liste länger wird
         container.scrollTop = container.scrollHeight;
     }
 }
@@ -324,7 +346,6 @@ function updateBoard() {
 }
 
 function startGame() {
-    // Holt alle Input-Felder und filtert leere Einträge heraus
     const inputElements = document.querySelectorAll(".player-input");
     players = Array.from(inputElements)
                    .map(el => el.value.trim())
