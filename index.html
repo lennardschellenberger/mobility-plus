@@ -202,7 +202,13 @@ let difficulty = null;
 let baseTimeSelected = 120;
 let nextTaskText = "";
 
-// Erweiterter & verbesserter Übungskatalog nach sportwissenschaftlichen Best-Practices
+// Variablen für die generative Hintergrundmusik
+let audioCtx = null;
+let musicInterval = null;
+let musicStep = 0;
+// Eine sanfte, motivierende Pentatonik-Tonfolge (A-Moll / C-Dur)
+const musicNotes = [220.00, 261.63, 293.66, 329.63, 392.00, 440.00]; 
+
 const tasks = {
    easy: [
       "Im Sitzen: Beide Arme weit nach oben strecken, als ob du reife Äpfel vom Baum pflückst.",
@@ -274,23 +280,65 @@ function handleInput(currentInput) {
     }
 }
 
-function selectTime(seconds, element) {
-    baseTimeSelected = seconds;
-    document.querySelectorAll(".time-box").forEach(box => box.classList.remove("selected"));
-    element.classList.add("selected");
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function startBackgroundMusic() {
+    initAudio();
+    if (musicInterval) return;
+
+    // Erzeugt jede halbe Sekunde (500ms) eine sanfte, rhythmische Note im Hintergrund
+    musicInterval = setInterval(() => {
+        try {
+            let o = audioCtx.createOscillator();
+            let g = audioCtx.createGain();
+            
+            // Generiert eine harmonische Melodielinie im Hintergrund
+            let noteIndex = (musicStep % 4 === 0) ? 0 : Math.floor(Math.random() * musicNotes.length);
+            let freq = musicNotes[noteIndex];
+            
+            // Jede vierte Note wird eine Oktave tiefer als Basis-Bass gespielt
+            if (musicStep % 4 === 0) freq = freq / 2;
+
+            o.frequency.value = freq;
+            o.type = "sine";
+            
+            // Sehr leise eingestellt (0.02), damit es die Konzentration nicht stört
+            g.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.4);
+            
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            
+            o.start();
+            o.stop(audioCtx.currentTime + 0.45);
+            
+            musicStep++;
+        } catch(e) { console.log("Musik-Fehler abgefangen"); }
+    }, 500);
+}
+
+function stopBackgroundMusic() {
+    if (musicInterval) {
+        clearInterval(musicInterval);
+        musicInterval = null;
+    }
 }
 
 function playTone(freq, duration, delay = 0) {
     setTimeout(() => {
         try {
-            let ctx = new (window.AudioContext || window.webkitAudioContext)();
-            let o = ctx.createOscillator();
-            let g = ctx.createGain();
+            initAudio();
+            let o = audioCtx.createOscillator();
+            let g = audioCtx.createGain();
             o.frequency.value = freq;
             o.type = "sine";
-            g.gain.value = 0.1;
+            g.gain.value = 0.08;
             o.connect(g);
-            g.connect(ctx.destination);
+            g.connect(audioCtx.destination);
             o.start();
             setTimeout(() => o.stop(), duration);
         } catch(e) { console.log("Audio-Fehler abgefangen"); }
@@ -399,6 +447,7 @@ function startTurn() {
     document.getElementById("task").innerText = nextTaskText;
 
     soundStart();
+    startBackgroundMusic(); // Musik startet synchron mit der Übung
     running = true;
 
     timer = setInterval(() => {
@@ -409,6 +458,7 @@ function startTurn() {
 
         if (timeLeft[current] <= 0) {
             clearInterval(timer);
+            stopBackgroundMusic(); // Musik stoppt, wenn die Zeit abläuft
             running = false;
             updateBoard();
             alert(players[current] + "s Zeitkonto ist abgelaufen!");
@@ -422,6 +472,7 @@ function stopTurn() {
     if (!running) return;
 
     clearInterval(timer);
+    stopBackgroundMusic(); // Musik stoppt bei Klick auf "Erledigt"
     running = false;
 
     let points = difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3;
@@ -441,6 +492,7 @@ function nextPlayer() {
 
 function endGame() {
     clearInterval(timer);
+    stopBackgroundMusic();
     soundGameOver();
 
     let msg = "ALLE ZEITKONTEN LEER - AUSWERTUNG\n\nErgebnisübersicht:\n";
