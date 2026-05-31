@@ -3,30 +3,26 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Mobility-Plus Pro</title>
+<title>Mobility-Plus</title>
 
 <style>
-:root {
-    --base-font-size: 20px;
-}
-
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background-color: #f4f7f6;
     color: #1a1a1a;
     text-align: center;
     padding: 20px;
-    font-size: var(--base-font-size);
+    font-size: 20px;
 }
 
 h1 {
     color: #00446a;
-    font-size: 1.8rem;
+    font-size: 36px;
     margin-bottom: 5px;
 }
 
 .subtitle {
-    font-size: 0.9rem;
+    font-size: 18px;
     color: #444;
     margin-bottom: 25px;
 }
@@ -41,28 +37,8 @@ h1 {
     position: relative;
 }
 
-/* Barrierefreiheit & Audio Panel oben */
-.accessibility-panel {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-bottom: 15px;
-    max-width: 650px;
-    margin: 0 auto 15px auto;
-}
-
-.font-btn {
-    background: #005585;
-    color: white;
-    padding: 5px 15px;
-    font-size: 0.8rem;
-    border-radius: 8px;
-    font-weight: bold;
-    margin: 0;
-}
-
 input[type="text"] {
-    font-size: 1.1rem;
+    font-size: 22px;
     padding: 12px;
     border: 2px solid #a0a0a0;
     border-radius: 10px;
@@ -75,26 +51,6 @@ input[type="text"] {
 input[type="text"]:focus {
     border-color: #005585;
     outline: none;
-    box-shadow: 0 0 8px rgba(0,85,133,0.3);
-}
-
-/* Audio Slider */
-.audio-settings {
-    background: #eef5f9;
-    padding: 15px;
-    border-radius: 12px;
-    margin: 20px 0;
-    text-align: left;
-    font-size: 0.85rem;
-}
-.audio-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 8px 0;
-}
-.audio-row input {
-    width: 60%;
 }
 
 .time-container {
@@ -110,7 +66,7 @@ input[type="text"]:focus {
     background: #eef5f9;
     border: 2px solid #b0b0b0;
     border-radius: 12px;
-    font-size: 1.1rem;
+    font-size: 22px;
     font-weight: bold;
     color: #222;
     cursor: pointer;
@@ -129,7 +85,7 @@ input[type="text"]:focus {
 }
 
 button {
-    font-size: 1.1rem;
+    font-size: 22px;
     font-weight: bold;
     padding: 16px 24px;
     margin: 10px;
@@ -146,7 +102,7 @@ button:hover { transform: scale(1.03); }
 .action-btn { background-color: #0066cc; color: white; min-width: 150px; }
 .stop { background-color: #2e7d32; color: white; min-width: 150px; }
 
-.diff { background-color: #e0e0e0; color: #1a1a1a; border: 2px solid #a0a0a0; font-size: 0.9rem; padding: 12px 15px; }
+.diff { background-color: #e0e0e0; color: #1a1a1a; border: 2px solid #a0a0a0; font-size: 18px; padding: 12px 15px; }
 .active { outline: 4px solid #00446a; background-color: #005585; color: white; }
 
 #game { display: none; }
@@ -167,11 +123,10 @@ button:hover { transform: scale(1.03); }
     100% { transform: rotateX(0deg); opacity: 1; }
 }
 
-#task { font-size: 1.3rem; font-weight: bold; margin: 15px 0; color: #111; line-height: 1.4; }
-#player { font-size: 1.6rem; color: #005585; font-weight: bold; }
-#timer { font-size: 2.8rem; font-weight: bold; color: #c62828; margin: 5px; }
+#task { font-size: 26px; font-weight: bold; margin: 15px 0; color: #111; line-height: 1.4; }
+#player { font-size: 34px; color: #005585; font-weight: bold; }
+#timer { font-size: 60px; font-weight: bold; color: #c62828; margin: 5px; }
 
-/* Fortschrittsbalken */
 .progress-container {
     width: 90%;
     background-color: #e0e0e0;
@@ -192,7 +147,7 @@ button:hover { transform: scale(1.03); }
 #board {
     margin-top: 25px;
     text-align: left;
-    font-size: 0.9rem;
+    font-size: 18px;
     background: #eef5f9;
     padding: 20px;
     border-radius: 12px;
@@ -210,11 +165,6 @@ button:hover { transform: scale(1.03); }
 
 <body>
 
-<div class="accessibility-panel">
-    <button class="font-btn" onclick="changeFontSize(2)">Schrift A+</button>
-    <button class="font-btn" onclick="changeFontSize(-2)">Schrift A-</button>
-</div>
-
 <h1>Mobility-Plus</h1>
 <div class="subtitle">Interaktive Bewegungsförderung im Alltag</div>
 
@@ -226,18 +176,6 @@ button:hover { transform: scale(1.03); }
         <h3>Namen der Teilnehmenden:</h3>
         <div id="dynamicInputs">
             <input type="text" class="player-input" placeholder="Name Person 1" oninput="handleInput(this)">
-        </div>
-
-        <div class="audio-settings">
-            <b>Lautstärke-Einstellungen:</b>
-            <div class="audio-row">
-                <label for="musicVol">Hintergrundmusik:</label>
-                <input type="range" id="musicVol" min="0" max="1" step="0.05" value="0.3" oninput="updateVolume()">
-            </div>
-            <div class="audio-row">
-                <label for="soundVol">Signaltöne & Pling:</label>
-                <input type="range" id="soundVol" min="0" max="1" step="0.05" value="0.4">
-            </div>
         </div>
 
         <h3>Gesamt-Zeitkonto pro Person (Sekunden):</h3>
@@ -278,7 +216,6 @@ button:hover { transform: scale(1.03); }
 
 </div>
 
-<audio id="lobbyMusic" src="lobby.mp3" loop></audio>
 <audio id="gameMusic" src="spiel.mp3" loop></audio>
 
 <script>
@@ -289,7 +226,6 @@ let running = false;
 let difficulty = null;
 let baseTimeSelected = 120;
 let nextTaskText = "";
-let currentFontSize = 20;
 
 const tasks = {
    easy: [
@@ -345,15 +281,6 @@ const tasks = {
    ]
 };
 
-// Barrierefreiheit: Schriftgröße ändern
-function changeFontSize(delta) {
-    currentFontSize += delta;
-    if (currentFontSize < 14) currentFontSize = 14;
-    if (currentFontSize > 32) currentFontSize = 32;
-    document.documentElement.style.setProperty('--base-font-size', currentFontSize + 'px');
-}
-
-// Autosave-Erkennung beim Laden der Seite
 window.onload = function() {
     if (localStorage.getItem("mobility_game_active") === "true") {
         document.getElementById("restoreBtn").style.display = "block";
@@ -387,18 +314,11 @@ function restoreGame() {
     document.getElementById("setup").style.display = "none";
     document.getElementById("game").style.display = "block";
 
-    document.getElementById("lobbyMusic").pause();
     playGameMusic();
     loadPlayer();
 }
 
 function handleInput(currentInput) {
-    const lobbyMusic = document.getElementById("lobbyMusic");
-    if (lobbyMusic.paused) {
-        lobbyMusic.volume = document.getElementById("musicVol").value;
-        lobbyMusic.play().catch(e => {});
-    }
-
     const container = document.getElementById("dynamicInputs");
     const inputs = container.getElementsByClassName("player-input");
     
@@ -414,16 +334,10 @@ function handleInput(currentInput) {
     }
 }
 
-function updateVolume() {
-    const vol = document.getElementById("musicVol").value;
-    document.getElementById("lobbyMusic").volume = vol;
-    document.getElementById("gameMusic").volume = vol;
-}
-
 function playGameMusic() {
     const gameMusic = document.getElementById("gameMusic");
-    gameMusic.volume = document.getElementById("musicVol").value;
-    gameMusic.play().catch(e => {});
+    gameMusic.volume = 0.4; // Standardmäßig auf angenehmen 40% voreingestellt
+    gameMusic.play().catch(e => console.log("Musikdatei 'spiel.mp3' fehlt oder wurde blockiert."));
 }
 
 function playTone(freq, duration, delay = 0) {
@@ -434,7 +348,7 @@ function playTone(freq, duration, delay = 0) {
             let g = ctx.createGain();
             o.frequency.value = freq;
             o.type = "sine";
-            g.gain.value = document.getElementById("soundVol").value * 0.2;
+            g.gain.value = 0.08;
             o.connect(g);
             g.connect(ctx.destination);
             o.start();
@@ -473,18 +387,15 @@ function updateVisualTimer() {
     const currentTime = timeLeft[current];
     
     timerText.innerText = currentTime;
-
-    // Berechnung in Prozent für den Ladebalken
     const percentage = (currentTime / baseTimeSelected) * 100;
     bar.style.width = percentage + "%";
 
-    // Farbwechsel je nach kritischem Zustand
     if (percentage > 50) {
-        bar.style.backgroundColor = "#2e7d32"; // Grün
+        bar.style.backgroundColor = "#2e7d32";
     } else if (percentage > 20) {
-        bar.style.backgroundColor = "#f57c00"; // Gelb/Orange
+        bar.style.backgroundColor = "#f57c00";
     } else {
-        bar.style.backgroundColor = "#c62828"; // Rot
+        bar.style.backgroundColor = "#c62828";
     }
 }
 
@@ -513,7 +424,6 @@ function startGame() {
         return;
     }
 
-    document.getElementById("lobbyMusic").pause();
     playGameMusic();
 
     scores = Array(players.length).fill(0);
