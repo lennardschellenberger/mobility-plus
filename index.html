@@ -151,7 +151,6 @@ button:hover { transform: scale(1.03); }
 
 <div class="card">
 
-    <!-- SETUP BEREICH -->
     <div id="setup">
         <h3>Namen der Teilnehmenden:</h3>
         
@@ -170,7 +169,6 @@ button:hover { transform: scale(1.03); }
         <button class="start" onclick="startGame()">SPIEL STARTEN</button>
     </div>
 
-    <!-- SPIEL BEREICH -->
     <div id="game">
         <div id="player">---</div>
 
@@ -195,8 +193,8 @@ button:hover { transform: scale(1.03); }
 
 </div>
 
-<!-- Unsichtbares Audio-Element für deine MP3-Datei -->
-<audio id="bgMusic" src="musik.mp3" loop></audio>
+<audio id="lobbyMusic" src="lobby.mp3" loop></audio>
+<audio id="gameMusic" src="spiel.mp3" loop></audio>
 
 <script>
 let players = [], scores = [], timeLeft = [];
@@ -231,13 +229,13 @@ const tasks = {
       "Sicherer Stand: Auf der Stelle langsam und rhythmisch marschieren, die Arme locker mitschwingen lassen.",
       "Am Stuhl festhalten: Ein Bein nach hinten strecken, ohne den Oberkörper zu weit nach vorne zu beugen.",
       "Sicherer Stand: Die Hände an die Hüften legen und das Becken ganz langsam in großen Kreisen bewegen.",
-      "Mit Stuhl-Unterstützung: Das rechte Knie Hüfthoch anheben, kurz halten, absetzen, dann das left Knie.",
+      "Mit Stuhl-Unterstützung: Das rechte Knie Hüfthoch anheben, kurz halten, absetzen, dann das linke Knie.",
       "Sicherer Stand: Die Arme auf Schulterhöhe nach vorne ausstrecken und für die Dauer der Übung stabil halten.",
       "Am Stuhl festhalten: Die Füße hintereinanderstellen (Tandem-Stand) und versuchen, das Gleichgewicht zu halten.",
       "Sicherer Stand: Die Arme hängen lassen und den Oberkörper abwechselnd nach links und rechts unten neigen.",
       "Am Stuhl festhalten: Ein Bein leicht anheben und mit dem Fuß eine '8' in die Luft schreiben.",
       "Am Stuhl festhalten: Leicht in die Knie gehen (Minikniebeuge) und den Po nach hinten schieben, als ob ein Stuhl da wäre.",
-      "Sicherer Stand: Die Hände auf den Schultern ablegen und mit den Ellbogen große Kreise in die Luft malen.",
+      "Sicherer Stand: Die Hände auf den Schultern ablegen und mit den EMit den Ellbogen große Kreise in die Luft malen.",
       "Am Stuhl festhalten: Das Gewicht komplett auf den linken Fuß verlagern, den rechten Fuß leicht anheben. Dann wechseln.",
       "Sicherer Stand: Die Schulterblätter hinten fest zusammenziehen, 5 Sekunden halten, wieder locker lassen.",
       "Mit Stuhl-Unterstützung: Den linken Arm nach vorne strecken und zeitgleich das rechte Bein nach hinten ausstrecken."
@@ -261,7 +259,14 @@ const tasks = {
    ]
 };
 
+// Startet die Lobbymusik, sobald der Nutzer das erste Mal ins Namensfeld klickt oder tippt
 function handleInput(currentInput) {
+    const lobbyMusic = document.getElementById("lobbyMusic");
+    if (lobbyMusic.paused) {
+        lobbyMusic.volume = 0.4;
+        lobbyMusic.play().catch(e => console.log("Audio-Wiedergabe wartet auf Interaktion."));
+    }
+
     const container = document.getElementById("dynamicInputs");
     const inputs = container.getElementsByClassName("player-input");
     
@@ -276,18 +281,6 @@ function handleInput(currentInput) {
         
         container.scrollTop = container.scrollHeight;
     }
-}
-
-// Funktionen zur MP3-Steuerung mit angenehmer Lautstärke
-function startBackgroundMusic() {
-    const music = document.getElementById("bgMusic");
-    music.volume = 0.4; // Lautstärke auf 40% (kannst du hier nach Wunsch anpassen, z.B. 0.5 für 50%)
-    music.play().catch(e => console.log("Audio-Wiedergabe blockiert oder Datei fehlt. Bitte 'musik.mp3' in den Ordner legen."));
-}
-
-function stopBackgroundMusic() {
-    const music = document.getElementById("bgMusic");
-    music.pause();
 }
 
 function playTone(freq, duration, delay = 0) {
@@ -321,6 +314,12 @@ function soundGameOver() {
     playTone(400, 200, 0);
     playTone(300, 300, 200);
     playTone(200, 400, 500);
+}
+
+function selectTime(seconds, element) {
+    baseTimeSelected = seconds;
+    document.querySelectorAll(".time-box").forEach(box => box.classList.remove("selected"));
+    element.classList.add("selected");
 }
 
 function setDiff(d, element) {
@@ -366,6 +365,12 @@ function startGame() {
         return;
     }
 
+    // MUSIK-WECHSEL HIER:
+    document.getElementById("lobbyMusic").pause(); // Stoppt Lobbymusik
+    const gameMusic = document.getElementById("gameMusic");
+    gameMusic.volume = 0.4; // Lautstärke Spielemusik (40%)
+    gameMusic.play().catch(e => console.log("Spiele-Musik konnte nicht geladen werden."));
+
     scores = Array(players.length).fill(0);
     timeLeft = Array(players.length).fill(baseTimeSelected);
 
@@ -409,7 +414,6 @@ function startTurn() {
     document.getElementById("task").innerText = nextTaskText;
 
     soundStart();
-    startBackgroundMusic(); // Startet deine MP3
     running = true;
 
     timer = setInterval(() => {
@@ -420,7 +424,6 @@ function startTurn() {
 
         if (timeLeft[current] <= 0) {
             clearInterval(timer);
-            stopBackgroundMusic(); // Stoppt deine MP3
             running = false;
             updateBoard();
             alert(players[current] + "s Zeitkonto ist abgelaufen!");
@@ -434,7 +437,6 @@ function stopTurn() {
     if (!running) return;
 
     clearInterval(timer);
-    stopBackgroundMusic(); // Stoppt deine MP3
     running = false;
 
     let points = difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3;
@@ -454,7 +456,7 @@ function nextPlayer() {
 
 function endGame() {
     clearInterval(timer);
-    stopBackgroundMusic();
+    document.getElementById("gameMusic").pause(); // Stoppt Spielemusik am Ende
     soundGameOver();
 
     let msg = "ALLE ZEITKONTEN LEER - AUSWERTUNG\n\nErgebnisübersicht:\n";
