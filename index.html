@@ -151,6 +151,7 @@ button:hover { transform: scale(1.03); }
 
 <div class="card">
 
+    <!-- SETUP BEREICH -->
     <div id="setup">
         <h3>Namen der Teilnehmenden:</h3>
         
@@ -169,6 +170,7 @@ button:hover { transform: scale(1.03); }
         <button class="start" onclick="startGame()">SPIEL STARTEN</button>
     </div>
 
+    <!-- SPIEL BEREICH -->
     <div id="game">
         <div id="player">---</div>
 
@@ -193,6 +195,9 @@ button:hover { transform: scale(1.03); }
 
 </div>
 
+<!-- Unsichtbares Audio-Element für deine MP3-Datei -->
+<audio id="bgMusic" src="musik.mp3" loop></audio>
+
 <script>
 let players = [], scores = [], timeLeft = [];
 let current = 0;
@@ -201,13 +206,6 @@ let running = false;
 let difficulty = null;
 let baseTimeSelected = 120;
 let nextTaskText = "";
-
-// Variablen für die generative Hintergrundmusik
-let audioCtx = null;
-let musicInterval = null;
-let musicStep = 0;
-// Eine sanfte, motivierende Pentatonik-Tonfolge (A-Moll / C-Dur)
-const musicNotes = [220.00, 261.63, 293.66, 329.63, 392.00, 440.00]; 
 
 const tasks = {
    easy: [
@@ -233,7 +231,7 @@ const tasks = {
       "Sicherer Stand: Auf der Stelle langsam und rhythmisch marschieren, die Arme locker mitschwingen lassen.",
       "Am Stuhl festhalten: Ein Bein nach hinten strecken, ohne den Oberkörper zu weit nach vorne zu beugen.",
       "Sicherer Stand: Die Hände an die Hüften legen und das Becken ganz langsam in großen Kreisen bewegen.",
-      "Mit Stuhl-Unterstützung: Das rechte Knie Hüfthoch anheben, kurz halten, absetzen, dann das linke Knie.",
+      "Mit Stuhl-Unterstützung: Das rechte Knie Hüfthoch anheben, kurz halten, absetzen, dann das left Knie.",
       "Sicherer Stand: Die Arme auf Schulterhöhe nach vorne ausstrecken und für die Dauer der Übung stabil halten.",
       "Am Stuhl festhalten: Die Füße hintereinanderstellen (Tandem-Stand) und versuchen, das Gleichgewicht zu halten.",
       "Sicherer Stand: Die Arme hängen lassen und den Oberkörper abwechselnd nach links und rechts unten neigen.",
@@ -280,65 +278,29 @@ function handleInput(currentInput) {
     }
 }
 
-function initAudio() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-}
-
+// Funktionen zur MP3-Steuerung mit angenehmer Lautstärke
 function startBackgroundMusic() {
-    initAudio();
-    if (musicInterval) return;
-
-    // Erzeugt jede halbe Sekunde (500ms) eine sanfte, rhythmische Note im Hintergrund
-    musicInterval = setInterval(() => {
-        try {
-            let o = audioCtx.createOscillator();
-            let g = audioCtx.createGain();
-            
-            // Generiert eine harmonische Melodielinie im Hintergrund
-            let noteIndex = (musicStep % 4 === 0) ? 0 : Math.floor(Math.random() * musicNotes.length);
-            let freq = musicNotes[noteIndex];
-            
-            // Jede vierte Note wird eine Oktave tiefer als Basis-Bass gespielt
-            if (musicStep % 4 === 0) freq = freq / 2;
-
-            o.frequency.value = freq;
-            o.type = "sine";
-            
-            // Sehr leise eingestellt (0.02), damit es die Konzentration nicht stört
-            g.gain.setValueAtTime(0.02, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.4);
-            
-            o.connect(g);
-            g.connect(audioCtx.destination);
-            
-            o.start();
-            o.stop(audioCtx.currentTime + 0.45);
-            
-            musicStep++;
-        } catch(e) { console.log("Musik-Fehler abgefangen"); }
-    }, 500);
+    const music = document.getElementById("bgMusic");
+    music.volume = 0.4; // Lautstärke auf 40% (kannst du hier nach Wunsch anpassen, z.B. 0.5 für 50%)
+    music.play().catch(e => console.log("Audio-Wiedergabe blockiert oder Datei fehlt. Bitte 'musik.mp3' in den Ordner legen."));
 }
 
 function stopBackgroundMusic() {
-    if (musicInterval) {
-        clearInterval(musicInterval);
-        musicInterval = null;
-    }
+    const music = document.getElementById("bgMusic");
+    music.pause();
 }
 
 function playTone(freq, duration, delay = 0) {
     setTimeout(() => {
         try {
-            initAudio();
-            let o = audioCtx.createOscillator();
-            let g = audioCtx.createGain();
+            let ctx = new (window.AudioContext || window.webkitAudioContext)();
+            let o = ctx.createOscillator();
+            let g = ctx.createGain();
             o.frequency.value = freq;
             o.type = "sine";
             g.gain.value = 0.08;
             o.connect(g);
-            g.connect(audioCtx.destination);
+            g.connect(ctx.destination);
             o.start();
             setTimeout(() => o.stop(), duration);
         } catch(e) { console.log("Audio-Fehler abgefangen"); }
@@ -447,7 +409,7 @@ function startTurn() {
     document.getElementById("task").innerText = nextTaskText;
 
     soundStart();
-    startBackgroundMusic(); // Musik startet synchron mit der Übung
+    startBackgroundMusic(); // Startet deine MP3
     running = true;
 
     timer = setInterval(() => {
@@ -458,7 +420,7 @@ function startTurn() {
 
         if (timeLeft[current] <= 0) {
             clearInterval(timer);
-            stopBackgroundMusic(); // Musik stoppt, wenn die Zeit abläuft
+            stopBackgroundMusic(); // Stoppt deine MP3
             running = false;
             updateBoard();
             alert(players[current] + "s Zeitkonto ist abgelaufen!");
@@ -472,7 +434,7 @@ function stopTurn() {
     if (!running) return;
 
     clearInterval(timer);
-    stopBackgroundMusic(); // Musik stoppt bei Klick auf "Erledigt"
+    stopBackgroundMusic(); // Stoppt deine MP3
     running = false;
 
     let points = difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3;
